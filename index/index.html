@@ -4,7 +4,10 @@
 </head>
 
 <body>
+
   <div id="wrapper">
+   <h2>Output:</h2>
+  <div id="output">--</div>
     <div id="chat_box" class="content"></div>
     <div id="footer">
       <div class="content">
@@ -13,6 +16,8 @@
         <input type="button" id="send_btn" value="Send" onclick="sendMessage()">
 		<button id="start-recording">Start</button>
 		<button id="stop-recording" disabled>Stop</button>
+		<button id="show">Show</button>
+		
 	  </div>
     </div>
   </div>
@@ -27,6 +32,12 @@
 
 </body>
 <script type="text/javascript">
+
+	document.querySelector('#show').onclick = function(){
+		var sen = document.querySelector('#output').textContent;
+		alert(sen);
+	};
+	
   var wsUri = "wss://nodddred-app.eu-gb.mybluemix.net/ws/vocal";
   var ws = new WebSocket(wsUri);
 
@@ -110,7 +121,7 @@
     message.value = "";
   };
 </script>
-<script src = "scripts/app.js"></script>
+<script src = "bundle.js"></script>
 <style type="text/css">
   * {
     font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;

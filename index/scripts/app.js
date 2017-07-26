@@ -1,7 +1,8 @@
 // fork getUserMedia for multiple browser versions, for the future
 // when more browsers support MediaRecorder
 
-
+var recognizeFile = require('watson-speech/speech-to-text/recognize-file');
+var sentence = "";
 navigator.getUserMedia = ( navigator.getUserMedia ||
                        navigator.webkitGetUserMedia ||
                        navigator.mozGetUserMedia ||
@@ -11,7 +12,7 @@ navigator.getUserMedia = ( navigator.getUserMedia ||
 
 var record = document.querySelector('#start-recording');
 var stop = document.querySelector('#stop-recording');
-
+var output = document.querySelector('#output');
 
 // visualiser setup - create web audio api context and canvas
 
@@ -48,8 +49,18 @@ if (navigator.getUserMedia) {
 				url : "/api/fetch-token",
 				type : "GET",
 				success : function(token){
-					createUserMessage("token", token);
 					
+					//createUserMessage("token", token);
+					var blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
+					chunks = [];
+					//var audioURL = window.URL.createObjectURL(blob);
+					//audio.src = audioURL;
+					recognizeFile({
+								token : token,
+								file : 'https://watson-speech.mybluemix.net/Us_English_Broadband_Sample_1.wav',
+								outputElement: document.querySelector('#output'),
+								play: true
+					});
 				}
 			});
 			createUserMessage("state", mediaRecorder.state);
@@ -62,13 +73,7 @@ if (navigator.getUserMedia) {
 		}
 		 
 		mediaRecorder.onstop = function(e) {
-			console.log("recorder stopped");
-			var blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
-			chunks = [];
 			
-			var audioURL = window.URL.createObjectURL(blob);
-			audio.src = audioURL;
-			createUserMessage("url blbo",""); 
 		}
 	  },
       // Error callback

@@ -22,7 +22,7 @@ app.get("/api/fetch-token", function (request, response) {
 			console.log('error:', err);
 			response.send("errore");
 		} else {
-			console.log(token);
+			//console.log(token);
 			response.send(token);
 		}
 	});
