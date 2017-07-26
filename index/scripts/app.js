@@ -1,6 +1,7 @@
 // fork getUserMedia for multiple browser versions, for the future
 // when more browsers support MediaRecorder
 
+
 navigator.getUserMedia = ( navigator.getUserMedia ||
                        navigator.webkitGetUserMedia ||
                        navigator.mozGetUserMedia ||
@@ -34,7 +35,7 @@ if (navigator.getUserMedia) {
 			this.disabled = true;
 			stop.disabled = false;
       	 	mediaRecorder.start();
-			createUserMessage("state: ", mediaRecorder.state);
+			createUserMessage("state", mediaRecorder.state);
       	 	
       	 	
       	}
@@ -43,7 +44,15 @@ if (navigator.getUserMedia) {
 			this.disabled = true;
 			record.disabled = false;
       	 	mediaRecorder.stop();
-			createUserMessage("state: ", mediaRecorder.state);
+			$.ajax({
+				url : "/api/fetch-token",
+				type : "GET",
+				success : function(token){
+					createUserMessage("token", token);
+					
+				}
+			});
+			createUserMessage("state", mediaRecorder.state);
       	 	
       	}
 		var chunks = [];
@@ -56,10 +65,10 @@ if (navigator.getUserMedia) {
 			console.log("recorder stopped");
 			var blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
 			chunks = [];
+			
 			var audioURL = window.URL.createObjectURL(blob);
 			audio.src = audioURL;
-			createUserMessage("url blbo", 
-
+			createUserMessage("url blbo",""); 
 		}
 	  },
       // Error callback
