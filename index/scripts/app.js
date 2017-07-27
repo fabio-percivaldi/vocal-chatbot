@@ -1,7 +1,7 @@
 // fork getUserMedia for multiple browser versions, for the future
 // when more browsers support MediaRecorder
-
-var recognizeFile = require('watson-speech/speech-to-text/recognize-file');
+var websocket;
+//var recognizeFile = require('watson-speech/speech-to-text/recognize-file');
 var sentence = "";
 navigator.getUserMedia = ( navigator.getUserMedia ||
                        navigator.webkitGetUserMedia ||
@@ -28,16 +28,28 @@ if (navigator.getUserMedia) {
       },
 
       // Success callback
-      function(stream) {
-      	 var mediaRecorder = new MediaRecorder(stream);
-
-
+    function(stream) {
+      	var mediaRecorder = new MediaRecorder(stream);
+		
       	record.onclick = function() {
 			this.disabled = true;
 			stop.disabled = false;
       	 	mediaRecorder.start();
 			createUserMessage("state", mediaRecorder.state);
-      	 	
+			
+			$.ajax({
+				url : "/api/fetch-token",
+				type : "GET",
+				success : function(token){
+					var wsURIW = ('wss://stream.watsonplatform.net/speech-to-text/api/v1/recognize?watson-token=' + token + '&model=en-US_BroadbandModel');
+					websocket = new WebSocket(wsURIW);
+					websocket.onopen = function(evt) { onOpen(evt) };
+					websocket.onclose = function(evt) { onClose(evt)};
+					websocket.onmessage = function(evt) { onMessage(evt) };
+					websocket.onerror = function(evt) { onError(evt)};
+					
+				}	
+      	 	});
       	 	
       	}
 
@@ -45,36 +57,27 @@ if (navigator.getUserMedia) {
 			this.disabled = true;
 			record.disabled = false;
       	 	mediaRecorder.stop();
-			$.ajax({
-				url : "/api/fetch-token",
-				type : "GET",
-				success : function(token){
-					
-					//createUserMessage("token", token);
-					var blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
-					chunks = [];
-					//var audioURL = window.URL.createObjectURL(blob);
-					//audio.src = audioURL;
-					recognizeFile({
-								token : token,
-								file : 'https://watson-speech.mybluemix.net/Us_English_Broadband_Sample_1.wav',
-								outputElement: document.querySelector('#output'),
-								play: true
-					});
-				}
-			});
-			createUserMessage("state", mediaRecorder.state);
-      	 	
+			//createUserMessage("token", token);
+			
       	}
+		
 		var chunks = [];
 
 		mediaRecorder.ondataavailable = function(e) {
+			createUserMessage("dato", "");
 			chunks.push(e.data);
 		}
-		 
+		
 		mediaRecorder.onstop = function(e) {
-			
+			var blob = new Blob(chunks, { 'type' : 'audio/ogg; codecs=opus' });
+			chunks = [];
+			createUserMessage("size", blob.size);
+			var url = URL.createObjectURL(blob);
+			createUserMessage("url", url)
+			websocket.send(blob);
+			createUserMessage("state", mediaRecorder.state);
 		}
+
 	  },
       // Error callback
 		function(err) {
@@ -86,3 +89,23 @@ if (navigator.getUserMedia) {
   createUserMessage("getUserMedia not supported on your browser!","");
 }
 
+
+function onOpen(evt) {
+	var message = {
+		'action': 'start',
+		'content-type': 'audio/l16;rate=22050'
+	};
+	websocket.send(JSON.stringify(message));
+}
+
+function onMessage(evt) {
+	createUserMessage("message", evt.data);
+}
+
+function onError(evt){
+	createUserMessage("socket error", "");
+}
+
+function onClose(evt){
+	createUserMessage("socket closed", "");
+}
