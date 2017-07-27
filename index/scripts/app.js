@@ -20,7 +20,7 @@ var output = document.querySelector('#output');
 //main block for doing the audio recording
 
 if (navigator.getUserMedia) {
-   //createUserMessage("getUserMedia supported.","");
+   
    navigator.getUserMedia (
       // constraints - only audio needed for this app
       {
@@ -35,7 +35,7 @@ if (navigator.getUserMedia) {
 			this.disabled = true;
 			stop.disabled = false;
       	 	mediaRecorder.start();
-			//createUserMessage("state", mediaRecorder.state);
+			
 			
 			$.ajax({
 				url : "/api/fetch-token",
@@ -57,27 +57,18 @@ if (navigator.getUserMedia) {
 			this.disabled = true;
 			record.disabled = false;
       	 	mediaRecorder.stop();
-			//createUserMessage("token", token);
-			
       	}
 		
 		var chunks = [];
 
 		mediaRecorder.ondataavailable = function(e) {
-			//createUserMessage("dato", "");
 			chunks.push(e.data);
 		}
 		
 		mediaRecorder.onstop = function(e) {
 			var blob = new Blob(chunks, { 'type' : 'audio/ogg;codecs=opus' });
 			chunks = [];
-			//createUserMessage("tipo", blob.type);
-			//createUserMessage("size", blob.size);
-			//var url = URL.createObjectURL(blob);
-			createUserMessage("url", url)
 			websocket.send(blob);
-			//createUserMessage("state", mediaRecorder.state);
-			//websocket.send(JSON.stringify("{'action': 'stop'}"));
 		}
 
 	  },
@@ -98,14 +89,13 @@ function onOpen(evt) {
 		'content-type': 'audio/ogg;codecs=opus',
 		'interim_results' : true 
 	};
+	createUserMessage("socket opened", "")
 	websocket.send(JSON.stringify(message));
 }
 
 function onMessage(evt) {
 		if(JSON.parse(evt.data).results[0].final)
 			createUserMessage("JSON", JSON.parse(evt.data).results[0].alternatives[0].transcript);
-
-			//createUserMessage("message", evt.data);
 }
 
 function onError(evt){
